@@ -815,7 +815,7 @@ void drawTitleScreen() {
   text("PLAYER 2: ARROWS + ENTER to shoot + / to reload", 3*width/4, height/2 + 130);
   fill(255, 255, 0, 150 + sin(frameCount * 0.1) * 105);
   textSize(35);
-  text("PRESS ANY KEY TO START", width/2, 2*height/3);
+  text("PRESS ANY KEY TO START", width/2, 2*height/3 + 60);
   fill(150, 150, 150, titleAlpha);
   textSize(16);
   text("Move: W/S or UP/DOWN | Turn: A/D or LEFT/RIGHT", width/2, height - 60);
@@ -2302,13 +2302,6 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
       float distance = hit.distance * cos(rayAngle - p.angle);
       float wallHeight = (tileSize * h) / distance;
 
-      // Make pine trees (tiles 2 and 3) tower over the arena - ONLY on Forest map
-      boolean isPineTree = (currentMapIndex == 1) && (hit.wallType == 2 || hit.wallType == 3);
-      float treeHeightMultiplier = 2.5; // Trees are 2.5x taller than normal walls
-      if (isPineTree) {
-        wallHeight *= treeHeightMultiplier;
-      }
-
       PImage tex = wallTextures[hit.wallType];
       int texSize = tex.width;
       int texX = int(hit.textureX * texSize) % texSize;
@@ -2318,19 +2311,11 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
       brightness = constrain(brightness, 0.2, 1.0);
       if (hit.horizontal) brightness *= 0.7;
 
-      // For pine trees, apply gradient brightness (darker at top for canopy effect)
       for (int y = 0; y < wallHeight; y++) {
         int texY = int(map(y, 0, wallHeight, 0, texSize)) % texSize;
         color c = tex.pixels[texY * texSize + texX];
 
-        float finalBrightness = brightness;
-        if (isPineTree) {
-          // Add subtle darkening toward the top of the tree (canopy effect)
-          float heightFactor = map(y, 0, wallHeight, 1.0, 0.7);
-          finalBrightness *= heightFactor;
-        }
-
-        fill(red(c) * finalBrightness, green(c) * finalBrightness, blue(c) * finalBrightness);
+        fill(red(c) * brightness, green(c) * brightness, blue(c) * brightness);
         noStroke();
         rect(x, h/2 - wallHeight/2 + y, sliceWidth, 2);
       }
@@ -2954,7 +2939,7 @@ void drawBeachObstacle(Player viewer, BeachObstacle obs, int w, int h) {
   while (angleDiff > PI) angleDiff -= TWO_PI;
   while (angleDiff < -PI) angleDiff += TWO_PI;
 
-  if (abs(angleDiff) < fov/2 + 0.5 && distance < maxDepth && distance > 10) {
+  if (abs(angleDiff) < fov/2 + 0.5 && distance < maxDepth) {
     RayHit hit = castRay(viewer.x, viewer.y, angle);
     if (hit == null || hit.distance > distance) {
       float screenX = w/2 + (angleDiff / (fov/2)) * (w/2);
@@ -2963,10 +2948,9 @@ void drawBeachObstacle(Player viewer, BeachObstacle obs, int w, int h) {
       float spriteHeight = (obs.sprite.height * h) / distance;
       float spriteWidth = (obs.sprite.width * spriteHeight) / obs.sprite.height;
 
-      // Check if sprite is within viewport bounds (prevent bleed to other player's screen)
-      // Sprite is centered at screenX, so check if any part would extend outside [0, w]
-      if (screenX - spriteWidth/2 < 0 || screenX + spriteWidth/2 > w) {
-        return; // Sprite would extend outside viewport
+      // Allow partial rendering - only skip if sprite center is far outside viewport
+      if (screenX < -spriteWidth || screenX > w + spriteWidth) {
+        return; // Sprite is completely off-screen
       }
 
       // Position sprite at eye level, then move up by quarter sprite height
