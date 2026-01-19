@@ -28,6 +28,8 @@ boolean soundsLoaded = false;
 // Music
 SoundFile menuMusic;
 SoundFile[] gameMusic = new SoundFile[5];
+SoundFile cargoMusic; // Dedicated cargo map music
+SoundFile forestMusic; // Dedicated forest map music
 SoundFile beachMusic; // Dedicated beach map music
 int currentTrack = -1;
 boolean musicLoaded = false;
@@ -866,7 +868,21 @@ void loadMusic() {
         gameMusic[i] = null;
       }
     }
-    // Load beach-specific music
+    // Load map-specific music
+    cargoMusic = loadSoundSafe("cargo_music.wav");
+    if (cargoMusic == null) cargoMusic = loadSoundSafe("cargo_music.mp3");
+    if (cargoMusic != null) {
+      println("Cargo music loaded");
+      loadedTracks++;
+    }
+
+    forestMusic = loadSoundSafe("forest_music.wav");
+    if (forestMusic == null) forestMusic = loadSoundSafe("forest_music.mp3");
+    if (forestMusic != null) {
+      println("Forest music loaded");
+      loadedTracks++;
+    }
+
     beachMusic = loadSoundSafe("beach_music.wav");
     if (beachMusic == null) beachMusic = loadSoundSafe("beach_music.mp3");
     if (beachMusic != null) {
@@ -892,11 +908,44 @@ void playRandomGameTrack() {
   if (currentTrack != -1 && gameMusic[currentTrack] != null) {
     try { gameMusic[currentTrack].stop(); } catch (Exception e) {}
   }
+  if (cargoMusic != null && cargoMusic.isPlaying()) {
+    try { cargoMusic.stop(); } catch (Exception e) {}
+  }
+  if (forestMusic != null && forestMusic.isPlaying()) {
+    try { forestMusic.stop(); } catch (Exception e) {}
+  }
   if (beachMusic != null && beachMusic.isPlaying()) {
     try { beachMusic.stop(); } catch (Exception e) {}
   }
 
-  // If on beach map and beach music is available, play it
+  // Play map-specific music if available
+  // Cargo map (index 0)
+  if (currentMapIndex == 0 && cargoMusic != null) {
+    try {
+      cargoMusic.amp(0.3);
+      cargoMusic.loop();
+      println("Now playing: Cargo Music");
+      currentTrack = -1; // Not using standard track
+      return;
+    } catch (Exception e) {
+      println("Error playing cargo music");
+    }
+  }
+
+  // Forest map (index 1)
+  if (currentMapIndex == 1 && forestMusic != null) {
+    try {
+      forestMusic.amp(0.3);
+      forestMusic.loop();
+      println("Now playing: Forest Music");
+      currentTrack = -1; // Not using standard track
+      return;
+    } catch (Exception e) {
+      println("Error playing forest music");
+    }
+  }
+
+  // Beach map (index 2)
   if (currentMapIndex == 2 && beachMusic != null) {
     try {
       beachMusic.amp(0.3);
