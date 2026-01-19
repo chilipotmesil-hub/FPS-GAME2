@@ -2273,6 +2273,10 @@ void drawSkybox(Player p, int w, int h) {
 
 void renderPlayer(Player p, int startX, int startY, int w, int h) {
   pushMatrix();
+
+  // Set clipping region in screen coordinates to prevent viewport bleeding
+  clip(startX, startY, w, h);
+
   translate(startX, startY);
 
   // Draw skybox
@@ -2430,6 +2434,10 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
   
   drawBloodOverlay(p, w, h);
   drawHUD(p, w, h);
+
+  // Restore clipping to default
+  noClip();
+
   popMatrix();
 }
 
