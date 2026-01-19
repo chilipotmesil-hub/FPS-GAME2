@@ -746,8 +746,24 @@ void triggerEndScreen(Player winningPlayer) {
   winner = winningPlayer;
   endScreenStartTime = millis();
   gunfireDelay = int(random(2000, 6000));
-  if (musicLoaded && currentTrack != -1 && gameMusic[currentTrack] != null) {
-    try { gameMusic[currentTrack].stop(); } catch (Exception e) {}
+
+  // Stop all in-game music immediately
+  if (musicLoaded) {
+    // Stop standard game tracks
+    if (currentTrack != -1 && gameMusic[currentTrack] != null) {
+      try { gameMusic[currentTrack].stop(); } catch (Exception e) {}
+    }
+
+    // Stop map-specific music tracks
+    if (cargoMusic != null && cargoMusic.isPlaying()) {
+      try { cargoMusic.stop(); } catch (Exception e) {}
+    }
+    if (forestMusic != null && forestMusic.isPlaying()) {
+      try { forestMusic.stop(); } catch (Exception e) {}
+    }
+    if (beachMusic != null && beachMusic.isPlaying()) {
+      try { beachMusic.stop(); } catch (Exception e) {}
+    }
   }
 }
 
