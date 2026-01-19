@@ -2275,9 +2275,6 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
   pushMatrix();
   translate(startX, startY);
 
-  // Clip to viewport bounds to prevent sprites bleeding to other player's screen
-  clip(0, 0, w, h);
-
   // Draw skybox
   if (skyboxTexture != null) {
     drawSkybox(p, w, h);
@@ -2305,8 +2302,8 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
       float distance = hit.distance * cos(rayAngle - p.angle);
       float wallHeight = (tileSize * h) / distance;
 
-      // Make pine trees (tiles 2 and 3) tower over the arena
-      boolean isPineTree = (hit.wallType == 2 || hit.wallType == 3);
+      // Make pine trees (tiles 2 and 3) tower over the arena - ONLY on Forest map
+      boolean isPineTree = (currentMapIndex == 1) && (hit.wallType == 2 || hit.wallType == 3);
       float treeHeightMultiplier = 2.5; // Trees are 2.5x taller than normal walls
       if (isPineTree) {
         wallHeight *= treeHeightMultiplier;
@@ -2448,9 +2445,6 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
   
   drawBloodOverlay(p, w, h);
   drawHUD(p, w, h);
-
-  // Restore clipping
-  noClip();
   popMatrix();
 }
 
@@ -2565,8 +2559,8 @@ void drawBloodParticle(Player viewer, BloodParticle bp, int w, int h) {
       float size = map(distance, 0, 300, 16, 4) * bp.size;
 
       // Check if sprite is within viewport bounds (prevent bleed to other player's screen)
-      if (screenX + size/2 < 0 || screenX - size/2 > w) {
-        return; // Sprite is completely outside viewport
+      if (screenX - size/2 < 0 || screenX + size/2 > w) {
+        return; // Sprite would extend outside viewport
       }
 
       float brightness = map(distance, 0, maxDepth, 1, 0.3);
@@ -2970,9 +2964,9 @@ void drawBeachObstacle(Player viewer, BeachObstacle obs, int w, int h) {
       float spriteWidth = (obs.sprite.width * spriteHeight) / obs.sprite.height;
 
       // Check if sprite is within viewport bounds (prevent bleed to other player's screen)
-      // Sprite is centered at screenX, so check if any part is visible in [0, w]
-      if (screenX + spriteWidth/2 < 0 || screenX - spriteWidth/2 > w) {
-        return; // Sprite is completely outside viewport
+      // Sprite is centered at screenX, so check if any part would extend outside [0, w]
+      if (screenX - spriteWidth/2 < 0 || screenX + spriteWidth/2 > w) {
+        return; // Sprite would extend outside viewport
       }
 
       // Position sprite at eye level, then move up by quarter sprite height
@@ -3010,8 +3004,8 @@ void drawSailboat(Player viewer, int w, int h) {
     float spriteWidth = (sailboatSprite.width * spriteHeight) / sailboatSprite.height;
 
     // Check if sprite is within viewport bounds (prevent bleed to other player's screen)
-    if (screenX + spriteWidth/2 < 0 || screenX - spriteWidth/2 > w) {
-      return; // Sprite is completely outside viewport
+    if (screenX - spriteWidth/2 < 0 || screenX + spriteWidth/2 > w) {
+      return; // Sprite would extend outside viewport
     }
 
     // Position sailboat above the horizon line (moved up by 1 sprite height)
