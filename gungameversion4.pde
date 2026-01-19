@@ -2275,6 +2275,9 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
   pushMatrix();
   translate(startX, startY);
 
+  // Clip to viewport bounds to prevent sprites bleeding to other player's screen
+  clip(0, 0, w, h);
+
   // Draw skybox
   if (skyboxTexture != null) {
     drawSkybox(p, w, h);
@@ -2445,6 +2448,9 @@ void renderPlayer(Player p, int startX, int startY, int w, int h) {
   
   drawBloodOverlay(p, w, h);
   drawHUD(p, w, h);
+
+  // Restore clipping
+  noClip();
   popMatrix();
 }
 
